@@ -1,6 +1,5 @@
 package com.project.weeklyMenuPlanner.ui;
 
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
@@ -9,10 +8,14 @@ import org.springframework.stereotype.Component;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * Создаёт и показывает главное окно на EDT. Не наследует {@link JFrame}, чтобы Spring
+ * мог создать бин без инициализации AWT (headless-safe до вызова {@link #open()}).
+ */
 @Component
 @Profile("desktop")
 @RequiredArgsConstructor
-public class MainFrame extends JFrame {
+public class MainFrame {
 
     private final MainLayoutBuilder layoutBuilder;
 
@@ -25,12 +28,20 @@ public class MainFrame extends JFrame {
     @Value("${app.name:My App}")
     private String appName;
 
-    @PostConstruct
-    private void initializeUI() {
-        setTitle(appName);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(windowWidth, windowHeight);
-        setLocationRelativeTo(null);
-        layoutBuilder.fillMainWindow(this);
+    public void open() {
+        if (GraphicsEnvironment.isHeadless()) {
+            throw new IllegalStateException(
+                    "Графическая среда недоступна (headless). Запустите приложение с -Djava.awt.headless=false");
+        }
+        SwingUtilities.invokeLater(this::createAndShow);
+    }
+
+    private void createAndShow() {
+        JFrame frame = new JFrame(appName);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(windowWidth, windowHeight);
+        frame.setLocationRelativeTo(null);
+        layoutBuilder.fillMainWindow(frame);
+        frame.setVisible(true);
     }
 }
