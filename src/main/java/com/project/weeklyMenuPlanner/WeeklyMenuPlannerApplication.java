@@ -1,22 +1,20 @@
 package com.project.weeklyMenuPlanner;
 
-import com.project.weeklyMenuPlanner.config.AppConfig;
 import com.project.weeklyMenuPlanner.ui.MainFrame;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-
-import javax.swing.*;
+import org.springframework.context.ConfigurableApplicationContext;
 
 @SpringBootApplication
 public class WeeklyMenuPlannerApplication {
 
     public static void main(String[] args) {
-        var context = new AnnotationConfigApplicationContext(AppConfig.class);
+        System.setProperty("java.awt.headless", "false");
 
-        // Launch in EDT (Event Dispatch Thread)
-        SwingUtilities.invokeLater(() -> {
-            MainFrame mainFrame = context.getBean(MainFrame.class);
-            mainFrame.setVisible(true);
-        });
+        SpringApplication application = new SpringApplication(WeeklyMenuPlannerApplication.class);
+        application.setAdditionalProfiles("desktop");
+        ConfigurableApplicationContext context = application.run(args);
+
+        context.getBean(MainFrame.class).open();
     }
 }

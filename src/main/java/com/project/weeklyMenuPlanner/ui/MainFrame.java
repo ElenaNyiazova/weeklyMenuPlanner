@@ -1,16 +1,23 @@
 package com.project.weeklyMenuPlanner.ui;
 
-import com.project.weeklyMenuPlanner.logic.MenuManager;
-import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * Создаёт и показывает главное окно на EDT. Не наследует {@link JFrame}, чтобы Spring
+ * мог создать бин без инициализации AWT (headless-safe до вызова {@link #open()}).
+ */
 @Component
-public class MainFrame extends JFrame {
+@Profile("desktop")
+@RequiredArgsConstructor
+public class MainFrame {
+
+    private final MainLayoutBuilder layoutBuilder;
 
     @Value("${window.width:800}")
     private int windowWidth;
@@ -21,21 +28,20 @@ public class MainFrame extends JFrame {
     @Value("${app.name:My App}")
     private String appName;
 
-    @Autowired
-    private MenuManager menuManager;
-
-    @Autowired
-    public MainFrame() {
+    public void open() {
+        if (GraphicsEnvironment.isHeadless()) {
+            throw new IllegalStateException(
+                    "Графическая среда недоступна (headless). Запустите приложение с -Djava.awt.headless=false");
+        }
+        SwingUtilities.invokeLater(this::createAndShow);
     }
 
-    @PostConstruct
-    private void initializeUI() {
-        setTitle(appName);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(windowWidth, windowHeight);
-        setLocationRelativeTo(null);
-        setLayout(new BorderLayout());
-
-        menuManager.fillMainWindow(this);
+    private void createAndShow() {
+        JFrame frame = new JFrame(appName);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(windowWidth, windowHeight);
+        frame.setLocationRelativeTo(null);
+        layoutBuilder.fillMainWindow(frame);
+        frame.setVisible(true);
     }
 }
