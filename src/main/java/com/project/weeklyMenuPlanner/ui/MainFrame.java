@@ -1,5 +1,6 @@
 package com.project.weeklyMenuPlanner.ui;
 
+import com.project.weeklyMenuPlanner.logic.MenuManager;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,14 +12,17 @@ import java.awt.*;
 @Component
 public class MainFrame extends JFrame {
 
-    @Value("${window.width:400}")
+    @Value("${window.width:800}")
     private int windowWidth;
 
-    @Value("${window.height:200}")
+    @Value("${window.height:600}")
     private int windowHeight;
 
     @Value("${app.name:My App}")
     private String appName;
+
+    @Autowired
+    private MenuManager menuManager;
 
     @Autowired
     public MainFrame() {
@@ -30,10 +34,8 @@ public class MainFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(windowWidth, windowHeight);
         setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
 
-        JLabel label = new JLabel("Hello World!", SwingConstants.CENTER);
-        label.setFont(new Font("Arial", Font.BOLD, 24));
-
-        add(label, BorderLayout.CENTER);
+        menuManager.fillMainWindow(this);
     }
 }
